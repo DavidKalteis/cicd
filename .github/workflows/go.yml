@@ -16,13 +16,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - uses: actions/setup-go@v4
+      - name: Set up Go
+        uses: actions/setup-go@v4
         with:
           go-version: '1.22'
 
-      - run: go mod tidy
+      - name: Install dependencies
+        run: go mod tidy
 
       - name: Start services
         run: docker compose up -d
@@ -30,14 +33,23 @@ jobs:
       - name: Run tests
         run: go test -v ./...
 
-      - run: go build -v ./...
+      - name: Build project
+        run: go build -v ./...
 
-      - name: SonarCloud Scan
+  sonarcloud:
+    runs-on: ubuntu-latest
+    needs: build 
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up SonarCloud
         uses: SonarSource/sonarcloud-github-action@master
         with:
           projectBaseDir: .
-          sonar.projectKey: ${{ secrets.SONAR_PROJECT_KEY }}  # Your SonarCloud Project Key
-          sonar.organization: ${{ secrets.SONAR_ORG }}  # Your SonarCloud Organization Key
+          sonar.projectKey: DavidKalteis_cicd
+          sonar.organization: davidkalteis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
